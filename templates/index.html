@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TrailBuddy AI - Local-AI-powered outdoor activity planner. Spend less time on screens and more time outside. 100% offline ready via Ollama.">
+    <meta name="theme-color" content="#1b4332">
+    <title>TrailBuddy AI 🌿 — Less Scrolling. More Exploring.</title>
+    
+    <!-- Google Fonts for Modern Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Background Ambient Flora Glows -->
+    <div class="ambient-glow glow-1" aria-hidden="true"></div>
+    <div class="ambient-glow glow-2" aria-hidden="true"></div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Top Navigation / Brand Header -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand-group">
+                <div class="brand-logo" aria-hidden="true">🌿</div>
+                <div class="brand-text">
+                    <div class="title-row">
+                        <h1 class="brand-title">TrailBuddy AI</h1>
+                        <span class="badge-offline" id="offline-badge">
+                            <span class="badge-dot"></span> LOCAL AI • OFFLINE READY
+                        </span>
+                    </div>
+                    <p class="brand-subtitle">Less scrolling. More exploring.</p>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <!-- AI Engine Health Status Indicator -->
+                <button type="button" class="status-pill status-loading" id="ai-status-pill" title="Click to view Local AI status & setup" aria-label="Local AI Connection Status">
+                    <span class="status-indicator-dot"></span>
+                    <span class="status-text" id="status-text">Checking Local AI...</span>
+                </button>
+
+                <!-- Quick Action Buttons in Header -->
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-open-challenge" aria-label="Open Random Challenge Modal">
+                    🎲 Random Challenge
+                </button>
+                <button type="button" class="btn btn-grass-mode btn-sm" id="btn-quick-grass" aria-label="Enter Touch Grass Mode">
+                    📵 Touch Grass Mode
+                </button>
+                <button type="button" class="btn btn-icon" id="btn-open-setup" title="Local AI Setup & Ollama Help" aria-label="Ollama Setup Help">
+                    ⚙️
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-layout">
+        
+        <!-- Offline & Local AI Privacy Banner -->
+        <section class="privacy-banner" aria-label="Local AI and Privacy Information">
+            <div class="banner-content">
+                <div class="banner-icon">🛡️</div>
+                <div class="banner-text">
+                    <strong>Powered by local open-weight AI via Ollama.</strong>
+                    <span>Your activity inputs and plans stay on your machine. Zero cloud APIs, zero tracking, and fully operational without an internet connection after setup.</span>
+                </div>
+            </div>
+            <div class="banner-actions">
+                <button type="button" class="btn-text-link" id="btn-banner-demo">⚡ Try Example Demo</button>
+                <button type="button" class="btn-text-link" id="btn-banner-guide">Setup Guide &rarr;</button>
+            </div>
+        </section>
+
+        <!-- Two-Column Interactive Workspace -->
+        <div class="workspace-grid">
+            
+            <!-- Left Column: Activity Preference Planner Form -->
+            <section class="card planner-card" aria-labelledby="planner-heading">
+                <div class="card-header">
+                    <div>
+                        <h2 id="planner-heading" class="card-title">🌱 Plan Your Outdoor Escape</h2>
+                        <p class="card-subtitle">Tell TrailBuddy what you have in mind and let local AI craft your outdoor mission.</p>
+                    </div>
+                    <!-- Quick Presets -->
+                    <div class="quick-preset-container">
+                        <span class="preset-label">⚡ Quick Presets:</span>
+                        <div class="preset-chips">
+                            <button type="button" class="preset-chip" data-preset="nature-walk">🚶 30m Nature Walk</button>
+                            <button type="button" class="preset-chip" data-preset="quick-recharge">🧘 15m Quick Recharge</button>
+                            <button type="button" class="preset-chip" data-preset="forest-explorer">🥾 60m Exploration</button>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="trail-form" class="planner-form" novalidate>
+                    
+                    <!-- 1. Available Time -->
+                    <div class="form-group">
+                        <label class="form-label" id="label-time">
+                            <span class="label-number">1</span> How much time do you have?
+                        </label>
+                        <div class="chip-group" role="radiogroup" aria-labelledby="label-time">
+                            <button type="button" class="chip-btn" data-time="15 minutes" role="radio" aria-checked="false">⏱️ 15 minutes</button>
+                            <button type="button" class="chip-btn active" data-time="30 minutes" role="radio" aria-checked="true">⏱️ 30 minutes</button>
+                            <button type="button" class="chip-btn" data-time="60 minutes" role="radio" aria-checked="false">⏱️ 60 minutes</button>
+                            <button type="button" class="chip-btn" data-time="90+ minutes" role="radio" aria-checked="false">⏱️ 90+ minutes</button>
+                        </div>
+                        <input type="hidden" name="time" id="input-time" value="30 minutes">
+                    </div>
+
+                    <!-- 2. Activity Preference -->
+                    <div class="form-group">
+                        <label class="form-label" id="label-activity">
+                            <span class="label-number">2</span> What do you want to do?
+                        </label>
+                        <div class="activity-grid" role="radiogroup" aria-labelledby="label-activity">
+                            <button type="button" class="activity-card active" data-activity="Walking" role="radio" aria-checked="true">
+                                <span class="activity-icon">🚶</span>
+                                <span class="activity-name">Walking</span>
+                            </button>
+                            <button type="button" class="activity-card" data-activity="Running" role="radio" aria-checked="false">
+                                <span class="activity-icon">🏃</span>
+                                <span class="activity-name">Running</span>
+                            </button>
+                            <button type="button" class="activity-card" data-activity="Hiking" role="radio" aria-checked="false">
+                                <span class="activity-icon">🥾</span>
+                                <span class="activity-name">Hiking</span>
+                            </button>
+                            <button type="button" class="activity-card" data-activity="Birdwatching" role="radio" aria-checked="false">
+                                <span class="activity-icon">🦜</span>
+                                <span class="activity-name">Birdwatching</span>
+                            </button>
+                            <button type="button" class="activity-card" data-activity="Gardening" role="radio" aria-checked="false">
+                                <span class="activity-icon">🌱</span>
+                                <span class="activity-name">Gardening</span>
+                            </button>
+                            <button type="button" class="activity-card" data-activity="Photography" role="radio" aria-checked="false">
+                                <span class="activity-icon">📷</span>
+                                <span class="activity-name">Photography</span>
+                            </button>
+                            <button type="button" class="activity-card" data-activity="Cycling" role="radio" aria-checked="false">
+                                <span class="activity-icon">🚴</span>
+                                <span class="activity-name">Cycling</span>
+                            </button>
+                            <button type="button" class="activity-card" data-activity="Outdoor relaxation" role="radio" aria-checked="false">
+                                <span class="activity-icon">🧘</span>
+                                <span class="activity-name">Outdoor Relaxation</span>
+                            </button>
+                            <button type="button" class="activity-card" data-activity="Surprise me" role="radio" aria-checked="false">
+                                <span class="activity-icon">🎲</span>
+                                <span class="activity-name">Surprise Me</span>
+                            </button>
+                        </div>
+                        <input type="hidden" name="activity" id="input-activity" value="Walking">
+                    </div>
+
+                    <!-- 3. Fitness Level & Companionship Row -->
+                    <div class="form-row-2">
+                        <!-- Fitness Level -->
+                        <div class="form-group">
+                            <label class="form-label" id="label-fitness">
+                                <span class="label-number">3</span> Fitness Level
+                            </label>
+                            <div class="chip-group" role="radiogroup" aria-labelledby="label-fitness">
+                                <button type="button" class="chip-btn active" data-fitness="Beginner" role="radio" aria-checked="true">🟢 Beginner</button>
+                                <button type="button" class="chip-btn" data-fitness="Moderate" role="radio" aria-checked="false">🟡 Moderate</button>
+                                <button type="button" class="chip-btn" data-fitness="Active" role="radio" aria-checked="false">🔴 Active</button>
+                            </div>
+                            <input type="hidden" name="fitness" id="input-fitness" value="Beginner">
+                        </div>
+
+                        <!-- Solo or Social -->
+                        <div class="form-group">
+                            <label class="form-label" id="label-companions">
+                                <span class="label-number">4</span> Solo or Social?
+                            </label>
+                            <div class="chip-group" role="radiogroup" aria-labelledby="label-companions">
+                                <button type="button" class="chip-btn active" data-companions="Solo" role="radio" aria-checked="true">👤 Solo</button>
+                                <button type="button" class="chip-btn" data-companions="With friends" role="radio" aria-checked="false">👥 Friends</button>
+                                <button type="button" class="chip-btn" data-companions="Family" role="radio" aria-checked="false">👨‍👩‍👧 Family</button>
+                                <button type="button" class="chip-btn" data-companions="Run club/group" role="radio" aria-checked="false">🏃 Group</button>
+                            </div>
+                            <input type="hidden" name="companions" id="input-companions" value="Solo">
+                        </div>
+                    </div>
+
+                    <!-- 5. Location/Area Input -->
+                    <div class="form-group">
+                        <label class="form-label" for="input-location">
+                            <span class="label-number">5</span> Where are you going? <span class="optional-tag">(Optional)</span>
+                        </label>
+                        <div class="input-with-icon">
+                            <span class="field-icon">📍</span>
+                            <input type="text" id="input-location" name="location" class="form-input" placeholder="e.g. Kanpur, Central Park, Local neighborhood, Backyard" maxlength="100">
+                        </div>
+                    </div>
+
+                    <!-- 6. Interests Multi-Select Chips -->
+                    <div class="form-group">
+                        <label class="form-label" id="label-interests">
+                            <span class="label-number">6</span> What are you interested in? <span class="optional-tag">(Select any)</span>
+                        </label>
+                        <div class="interest-tag-group" aria-labelledby="label-interests">
+                            <button type="button" class="interest-tag active" data-interest="Nature">🌿 Nature</button>
+                            <button type="button" class="interest-tag" data-interest="Birds">🦜 Birds</button>
+                            <button type="button" class="interest-tag" data-interest="Trees">🌳 Trees</button>
+                            <button type="button" class="interest-tag" data-interest="Photography">📷 Photography</button>
+                            <button type="button" class="interest-tag" data-interest="Exercise">💪 Exercise</button>
+                            <button type="button" class="interest-tag" data-interest="Relaxation">🧘 Relaxation</button>
+                            <button type="button" class="interest-tag" data-interest="Exploring">🧭 Exploring</button>
+                        </div>
+                    </div>
+
+                    <!-- 7. Weather / Season Notes & Extra Details -->
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="input-weather">
+                                <span class="label-number">7</span> Weather / Season <span class="optional-tag">(Optional)</span>
+                            </label>
+                            <input type="text" id="input-weather" name="weather" class="form-input" placeholder="e.g. Sunny afternoon, Crisp morning, Overcast" maxlength="80">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="input-notes">
+                                <span class="label-number">8</span> Notes / Constraints <span class="optional-tag">(Optional)</span>
+                            </label>
+                            <input type="text" id="input-notes" name="notes" class="form-input" placeholder="e.g. Paved paths preferred, recovering ankle" maxlength="200">
+                        </div>
+                    </div>
+
+                    <!-- Action Submit Bar -->
+                    <div class="form-submit-row">
+                        <button type="submit" class="btn btn-primary btn-lg" id="btn-generate-plan">
+                            <span class="btn-icon">🌱</span> Create My Outdoor Plan
+                        </button>
+                        <button type="button" class="btn btn-outline" id="btn-try-demo">
+                            ⚡ Try Example Plan
+                        </button>
+                    </div>
+
+                </form>
+            </section>
+
+            <!-- Right Column: Result / Mission Output Display -->
+            <section class="card result-card" id="result-container" aria-live="polite">
+                
+                <!-- State 1: Empty Initial State -->
+                <div class="state-empty" id="state-empty">
+                    <div class="empty-art" aria-hidden="true">🌲 🥾 🌿</div>
+                    <h3 class="empty-title">Ready for Screen-Free Fresh Air?</h3>
+                    <p class="empty-description">
+                        Select your preferred duration and activity on the left, then click <strong>"Create My Outdoor Plan"</strong>.
+                        TrailBuddy's local AI will instantly structure a safe, realistic mission.
+                    </p>
+                    <div class="empty-features">
+                        <div class="feature-item">
+                            <span class="feat-icon">🔒</span>
+                            <span>100% Local Inference — Zero Cloud APIs</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feat-icon">📵</span>
+                            <span>Built-in Phone-Down Countdown Timer</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feat-icon">🎒</span>
+                            <span>Interactive Offline Gear Checklist</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- State 2: Loading State -->
+                <div class="state-loading hidden" id="state-loading">
+                    <div class="loading-spinner-wrapper">
+                        <div class="leaf-spinner" aria-hidden="true">🍃</div>
+                    </div>
+                    <h3 class="loading-title">Planning your escape from the screen...</h3>
+                    <p class="loading-subtitle" id="loading-quote">"The clearest way into the Universe is through a forest wilderness." — John Muir</p>
+                    <div class="loading-progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <span class="loading-local-tag">⚡ Running locally on <span id="loading-model-name">llama3.2</span> via Ollama</span>
+                </div>
+
+                <!-- State 3: Error / Offline Fallback State -->
+                <div class="state-error hidden" id="state-error">
+                    <div class="error-icon" aria-hidden="true">🌱 ⚠️</div>
+                    <h3 class="error-title" id="error-title">TrailBuddy can't reach your local AI yet.</h3>
+                    <p class="error-description" id="error-desc">
+                        Local AI inference is unavailable. Please ensure Ollama is running and your open-weight model is pulled.
+                    </p>
+                    
+                    <div class="error-setup-box">
+                        <div class="setup-step">
+                            <span class="step-num">1</span>
+                            <span>Download & start <strong>Ollama</strong> (<a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a>)</span>
+                        </div>
+                        <div class="setup-step">
+                            <span class="step-num">2</span>
+                            <span>In terminal run: <code>ollama pull llama3.2</code></span>
+                        </div>
+                        <div class="setup-step">
+                            <span class="step-num">3</span>
+                            <span>In terminal run: <code>ollama run llama3.2</code></span>
+                        </div>
+                    </div>
+
+                    <div class="error-actions">
+                        <button type="button" class="btn btn-primary" id="btn-retry-health">
+                            🔄 Retry Connection
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btn-error-demo">
+                            ⚡ View Example Plan Instead
+                        </button>
+                    </div>
+                </div>
+
+                <!-- State 4: Mission Result Content -->
+                <div class="state-result hidden" id="state-result">
+                    
+                    <!-- Result Header & Mission Title -->
+                    <div class="result-header">
+                        <div class="mission-badge-row">
+                            <span class="mission-tag">🌿 YOUR OUTDOOR MISSION</span>
+                            <span class="demo-tag hidden" id="demo-indicator-tag">SAMPLE DEMO PLAN</span>
+                            <span class="ai-model-tag" id="result-model-tag">llama3.2</span>
+                        </div>
+                        <h2 class="mission-title" id="mission-title">60-Minute Mindful Nature Walk</h2>
+                    </div>
+
+                    <!-- Section: Why This? -->
+                    <div class="mission-section mission-why-box" id="section-why-wrapper">
+                        <div class="section-label-header">
+                            <span class="section-icon">💡</span>
+                            <h4 class="section-heading">Why This Mission?</h4>
+                        </div>
+                        <p class="mission-why-text" id="mission-why-text">
+                            A restorative escape designed to disconnect your eyes from digital displays and activate natural endorphins.
+                        </p>
+                    </div>
+
+                    <!-- Section: Timed Step-by-Step Plan -->
+                    <div class="mission-section">
+                        <div class="section-label-header">
+                            <span class="section-icon">🗺️</span>
+                            <h4 class="section-heading">Your Step-by-Step Plan</h4>
+                        </div>
+                        <div class="plan-timeline" id="plan-timeline-container">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Section: Bring This Checklist (Interactive) -->
+                    <div class="mission-section">
+                        <div class="section-label-header">
+                            <span class="section-icon">🎒</span>
+                            <h4 class="section-heading">Bring This (Offline Checklist)</h4>
+                        </div>
+                        <ul class="interactive-checklist" id="mission-checklist-container">
+                            <!-- Populated dynamically via JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Section: Safety Advice -->
+                    <div class="mission-section">
+                        <div class="section-label-header">
+                            <span class="section-icon">🛡️</span>
+                            <h4 class="section-heading">Safety & Considerations</h4>
+                        </div>
+                        <ul class="safety-list" id="mission-safety-container">
+                            <!-- Populated dynamically via JS -->
+                        </ul>
+                    </div>
+
+                    <!-- Section: Phone-Down Challenge Card -->
+                    <div class="mission-section phone-down-card">
+                        <div class="phone-down-header">
+                            <span class="phone-down-icon">📵</span>
+                            <h4 class="phone-down-heading">Phone-Down Challenge</h4>
+                        </div>
+                        <p class="phone-down-text" id="mission-phonedown-text">
+                            Put your phone on silent and keep it in your pocket or bag. Only look at it if essential for emergency safety.
+                        </p>
+                        <div class="phone-down-action">
+                            <button type="button" class="btn btn-grass-mode" id="btn-start-phonedown-mode">
+                                📵 Start 30-Min Phone-Down Challenge
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Section: Optional Variation -->
+                    <div class="mission-section variation-box" id="section-variation-wrapper">
+                        <div class="section-label-header">
+                            <span class="section-icon">🍃</span>
+                            <h4 class="section-heading">Optional Variation</h4>
+                        </div>
+                        <p class="variation-text" id="mission-variation-text">
+                            If weather turns breezy, wrap up in a windbreaker and focus on auditory wind sounds in the tree line.
+                        </p>
+                    </div>
+
+                    <!-- Mission Action Toolbar -->
+                    <div class="result-action-bar">
+                        <button type="button" class="btn btn-primary" id="btn-start-mission-grass">
+                            🌿 Touch Grass Now (Close Screen)
+                        </button>
+                        <button type="button" class="btn btn-outline" id="btn-copy-plan" title="Copy plan to clipboard">
+                            📋 Copy Plan
+                        </button>
+                        <button type="button" class="btn btn-outline" id="btn-print-plan" title="Print plan or save as PDF">
+                            🖨️ Print Plan
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btn-generate-another">
+                            ↻ Generate Another
+                        </button>
+                    </div>
+
+                    <!-- Encouragement Footer -->
+                    <div class="mission-end-callout">
+                        <p>🌿 Your plan is ready. The best part of TrailBuddy is closing this browser and going outside.</p>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- 📵 TOUCH GRASS FULL-SCREEN / MODAL EXPERIENCE -->
+    <div class="modal-overlay hidden" id="modal-grass-mode" role="dialog" aria-modal="true" aria-labelledby="grass-modal-title">
+        <div class="modal-card grass-mode-card">
+            <button type="button" class="modal-close-btn" id="btn-close-grass-modal" aria-label="Close modal">&times;</button>
+            
+            <div class="grass-header">
+                <div class="grass-big-icon">🌿</div>
+                <h2 id="grass-modal-title" class="grass-title">Touch Grass Mode</h2>
+                <p class="grass-tagline" id="grass-status-msg">Screen time ends here. Adventure starts now. 🌿</p>
+            </div>
+
+            <!-- Big Circular Countdown Timer -->
+            <div class="timer-display-wrap">
+                <div class="timer-circle">
+                    <span class="timer-digits" id="timer-display">30:00</span>
+                    <span class="timer-label" id="timer-state-label">Ready to unplug</span>
+                </div>
+            </div>
+
+            <!-- Timer Duration Presets -->
+            <div class="timer-presets">
+                <button type="button" class="timer-preset-btn" data-minutes="15">15m</button>
+                <button type="button" class="timer-preset-btn active" data-minutes="30">30m</button>
+                <button type="button" class="timer-preset-btn" data-minutes="45">45m</button>
+                <button type="button" class="timer-preset-btn" data-minutes="60">60m</button>
+            </div>
+
+            <!-- Timer Control Buttons -->
+            <div class="timer-controls">
+                <button type="button" class="btn btn-primary btn-lg" id="btn-timer-start">
+                    ▶ Start Phone-Down Challenge
+                </button>
+                <button type="button" class="btn btn-secondary btn-lg hidden" id="btn-timer-pause">
+                    ⏸ Pause
+                </button>
+                <button type="button" class="btn btn-outline" id="btn-timer-reset">
+                    🔄 Reset
+                </button>
+            </div>
+
+            <!-- Encouragement & Exit message -->
+            <div class="grass-closing-instructions">
+                <p>💡 Tip: Put your phone on <strong>Do Not Disturb</strong>, place it in your bag, and step outside into the real world.</p>
+                <button type="button" class="btn btn-grass-mode btn-block" id="btn-dismiss-and-exit">
+                    🌿 I'm Going Outside! (Minimize)
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 🎲 RANDOM OUTDOOR CHALLENGE MODAL -->
+    <div class="modal-overlay hidden" id="modal-challenge" role="dialog" aria-modal="true" aria-labelledby="challenge-modal-title">
+        <div class="modal-card challenge-card">
+            <button type="button" class="modal-close-btn" id="btn-close-challenge-modal" aria-label="Close modal">&times;</button>
+            
+            <div class="modal-header-simple">
+                <span class="modal-chip">🎲 INSTANT TOUCH GRASS MISSION</span>
+                <h3 id="challenge-modal-title" class="challenge-title">Outdoor Micro-Challenge</h3>
+            </div>
+
+            <div class="challenge-body" id="challenge-body-content">
+                <div class="challenge-tag-row">
+                    <span class="challenge-badge" id="ch-tag">🌿 Observation</span>
+                    <span class="challenge-duration" id="ch-duration">⏱️ 15-20 min</span>
+                    <span class="challenge-difficulty" id="ch-diff">🟢 Easy</span>
+                </div>
+                <h4 class="challenge-name" id="ch-title">Botanical Texture Hunt</h4>
+                <p class="challenge-description" id="ch-desc">
+                    Find 3 distinctly different leaf shapes and 2 different tree bark textures in your immediate neighborhood.
+                </p>
+                <div class="challenge-phone-rule">
+                    <span class="rule-icon">📵</span>
+                    <span id="ch-phone-rule">Leave your phone on silent in your pocket.</span>
+                </div>
+            </div>
+
+            <div class="challenge-modal-actions">
+                <button type="button" class="btn btn-primary" id="btn-accept-challenge">
+                    🌿 Accept & Start Countdown
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-reroll-challenge">
+                    🎲 Roll Another Challenge
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ⚙️ LOCAL AI & OLLAMA SETUP MODAL -->
+    <div class="modal-overlay hidden" id="modal-setup" role="dialog" aria-modal="true" aria-labelledby="setup-modal-title">
+        <div class="modal-card setup-card">
+            <button type="button" class="modal-close-btn" id="btn-close-setup-modal" aria-label="Close modal">&times;</button>
+            
+            <div class="modal-header-simple">
+                <span class="modal-chip">⚙️ LOCAL AI ENGINE CONFIGURATION</span>
+                <h3 id="setup-modal-title" class="modal-title">Local Open-Weight AI via Ollama</h3>
+            </div>
+
+            <p class="modal-intro">
+                TrailBuddy AI runs on <strong>Ollama</strong> with open-weight models (default: <code>llama3.2</code>).
+                All prompt processing takes place directly on your machine with <strong>zero cloud dependencies</strong>.
+            </p>
+
+            <div class="setup-steps-list">
+                <div class="guide-step">
+                    <div class="guide-step-num">1</div>
+                    <div class="guide-step-content">
+                        <strong>Install Ollama</strong>
+                        <p>Download the free open-source Ollama runtime for Windows, macOS, or Linux at <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a>.</p>
+                    </div>
+                </div>
+
+                <div class="guide-step">
+                    <div class="guide-step-num">2</div>
+                    <div class="guide-step-content">
+                        <strong>Pull the Open-Weight Model</strong>
+                        <p>Open PowerShell or Terminal and download <code>llama3.2</code> (approx. 2 GB):</p>
+                        <div class="code-copy-row">
+                            <code>ollama pull llama3.2</code>
+                            <button type="button" class="btn-copy-code" data-copy="ollama pull llama3.2" title="Copy command">Copy</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="guide-step">
+                    <div class="guide-step-num">3</div>
+                    <div class="guide-step-content">
+                        <strong>Start Ollama Service</strong>
+                        <p>Start the Ollama daemon or run the model:</p>
+                        <div class="code-copy-row">
+                            <code>ollama run llama3.2</code>
+                            <button type="button" class="btn-copy-code" data-copy="ollama run llama3.2" title="Copy command">Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Health Status in Setup Modal -->
+            <div class="setup-health-status" id="modal-health-box">
+                <div class="health-status-indicator">
+                    <span class="status-indicator-dot" id="modal-health-dot"></span>
+                    <span id="modal-health-status-text">Checking connection to http://localhost:11434...</span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-modal-test-health">
+                    🔄 Test Connection Now
+                </button>
+            </div>
+
+            <div class="modal-footer-actions">
+                <button type="button" class="btn btn-outline" id="btn-close-setup-action">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Footer -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div class="footer-left">
+                <span>🌿 <strong>TrailBuddy AI</strong> — Hacktoberfest Touch Grass Challenge</span>
+                <span class="footer-separator">•</span>
+                <span>Powered by local open-weight AI via Ollama</span>
+            </div>
+            <div class="footer-right">
+                <span class="footer-badge">100% Offline Capable</span>
+                <span class="footer-badge">Zero Cloud AI APIs</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- App Logic Script -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
